@@ -1,2 +1,2 @@
 # WebSockets
-A simple web socket application
+A simple application that can send STOMP messages using web sockets 
