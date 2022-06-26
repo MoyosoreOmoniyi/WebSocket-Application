@@ -1,2 +1,2 @@
 # WebSockets
-A simple application that allows a user to send STOMP messages and notifications globally and privately using web sockets 
+A simple STOMP-based messaging application that allows messages to be sent and notifications to be received globally and privately using web sockets
