@@ -18,16 +18,23 @@ public class MessageController {
     @Autowired
     private NotificationService notificationService;
 
-    @MessageMapping("/message") //client sends to ws/message
-    @SendTo("/topic/messages") // response sent to client subscriber who receives on
+    /**<p>Get Message</p>
+     * @MessageMapping("/message") annotation ensures that when a client sends a message to /message the getMessage() method is called.
+     * @SendTo("/topic/messages")  annotation ensures that the response of the getMessage() method is broadcast to all subscribers(e.g: the client) of /topic/messages
+     * @param message The message sent from client
+     * @return response sent back to the client
+     * @throws InterruptedException
+     */
+    @MessageMapping("/message")
+    @SendTo("/topic/messages")
     public ResponseMessage getMessage (final Message message) throws InterruptedException {
         Thread.sleep(1000);
         notificationService.sendGlobalNotification();
-        return new ResponseMessage(HtmlUtils.htmlEscape(message.getMessageContent()));
+        return new ResponseMessage("I will not respond to this message: " + HtmlUtils.htmlEscape(message.getMessageContent()));
     }
 
-    @MessageMapping("/private-message") //send to ws/private-message
-    @SendToUser("/topic/private-messages") // response sent to subscriber who receives on
+    @MessageMapping("/private-message")
+    @SendToUser("/topic/private-messages")
     public ResponseMessage getPrivateMessage (final Message message, final Principal principal) throws InterruptedException {
         Thread.sleep(1000);
         notificationService.sendPrivateNotification(principal.getName());
