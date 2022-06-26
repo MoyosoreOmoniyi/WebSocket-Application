@@ -13,6 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // The SockJS client will attempt to connect to the /ws endpoint and use the best available transport to establish a connection(websocket).
                 .setHandshakeHandler(new UserHandshakeHandler())
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 

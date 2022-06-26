@@ -30,7 +30,7 @@ public class MessageController {
     public ResponseMessage getMessage (final Message message) throws InterruptedException {
         Thread.sleep(1000);
         notificationService.sendGlobalNotification();
-        return new ResponseMessage("I will not respond to this message: " + HtmlUtils.htmlEscape(message.getMessageContent()));
+        return new ResponseMessage("I will respond to this message: " + HtmlUtils.htmlEscape(message.getMessageContent()));
     }
 
     @MessageMapping("/private-message")

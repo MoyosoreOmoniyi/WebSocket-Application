@@ -1,73 +1,51 @@
-var stompClient = null;
-var notificationCount = 0;
+// Try to set up WebSocket connection with the handshake at "http://localhost:8900/ws"
+let sock = new SockJS("http://localhost:8900/ws");
 
-$(document).ready(function() {
-    console.log("Index page is ready");
-    connect();
+// Create a new Stomp Client object with the WebSocket endpoint
+let stompClient = Stomp.over(sock);
 
-    $("#send").click(function() {
-        sendMessage();
+// Start the STOMP communications, provide a callback for when the CONNECT frame arrives.
+stompClient.connect({}, frame => {
+    console.log('Connected: ' + frame);
+    // Subscribe to "/topic/messages". Whenever a message arrives add the text in a list-item element in the unordered list.
+    stompClient.subscribe("/topic/messages", payload => {
+
+        let message_list = document.getElementById('message-list');
+        let message = document.createElement('li');
+
+        message.appendChild(document.createTextNode(JSON.parse(payload.body).content));
+        message_list.appendChild(message);
+
     });
-
-    $("#send-private").click(function() {
-        sendPrivateMessage();
-    });
-
-    $("#notifications").click(function() {
-        resetNotificationCount();
+    
+    stompClient.subscribe("/user/topic/private-messages", payload => {
+    
+            let message_list = document.getElementById('message-list');
+            let message = document.createElement('li');
+    
+            message.appendChild(document.createTextNode(JSON.parse(payload.body).content));
+            message_list.appendChild(message);
+    
     });
 });
 
-function connect() {
-    var socket = new SockJS('/ws');
-    stompClient = Stomp.over(socket);
-    stompClient.connect({}, function (frame) {
-        console.log('Connected: ' + frame);
-        updateNotificationDisplay();
-        stompClient.subscribe('/topic/messages', function (message) {
-            showMessage(JSON.parse(message.body).content);
-        });
+// Take the value in the ‘message-input’ text field and send it to the server with empty headers.
+function sendMessage(){
+    console.log("sending message");
+    let input = document.getElementById("message-input");
+    let message = input.value;
 
-        stompClient.subscribe('/user/topic/private-messages', function (message) {
-            showMessage(JSON.parse(message.body).content);
-        });
+    stompClient.send('/app/message', {}, JSON.stringify({messageContent: message}));
+}
 
-        stompClient.subscribe('/topic/global-notifications', function (message) {
-            notificationCount = notificationCount + 1;
-            updateNotificationDisplay();
-        });
+function sendPrivateMessage(){
+    console.log("sending private message");
+    let input = document.getElementById("private-message-input");
+    let message = input.value;
 
-        stompClient.subscribe('/user/topic/private-notifications', function (message) {
-            notificationCount = notificationCount + 1;
-            updateNotificationDisplay();
-        });
-    });
+    stompClient.send('/app/private-message', {}, JSON.stringify({messageContent: message}));
 }
 
 function showMessage(message) {
     $("#messages").append("<tr><td>" + message + "</td></tr>");
-}
-
-function sendMessage() {
-    console.log("sending message");
-    stompClient.send("/app/message", {}, JSON.stringify({'messageContent': $("#message").val()}));
-}
-
-function sendPrivateMessage() {
-    console.log("sending private message");
-    stompClient.send("/app/private-message", {}, JSON.stringify({'messageContent': $("#private-message").val()}));
-}
-
-function updateNotificationDisplay() {
-    if (notificationCount == 0) {
-        $('#notifications').hide();
-    } else {
-        $('#notifications').show();
-        $('#notifications').text(notificationCount);
-    }
-}
-
-function resetNotificationCount() {
-    notificationCount = 0;
-    updateNotificationDisplay();
 }
